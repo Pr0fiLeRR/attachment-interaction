@@ -1,0 +1,34 @@
+//###############################################################################
+//##  PLATFORM: Microsoft Exchange Online Protection (EOP Email Security Gateway)
+//##  AUTHOR: IGOR OLIVEIRA (#IO)
+//##  LOCATION: Microsoft Sentinel | Logs
+//##  TITLE: KQL script to detect when a user interacted with a PDF attachment.
+//###############################################################################
+let SampleTenantId = "f1587cia-adb5-4576-3854-4768cd17d127";
+let Device_FileEvents = DeviceFileEvents
+    | where TimeGenerated > ago(7d)
+    | where FileName endswith "pdf"
+    | where ActionType == "FileCreated"
+    | where InitiatingProcessFileName == "outlook.exe"
+    | summarize FirstSeen = max(TimeGenerated) by TimeGenerated, FileName, DeviceName, RequestAccountName
+    | join kind=inner (EmailAttachmentInfo) on FileName
+    | where SenderFromAddress contains "DOMAIN.TLD"
+    | where SenderFromAddress !contains "RECIPIENTS_DOMAIN.TLD"
+    | where RecipientEmailAddress contains "RECIPIENTS_DOMAIN.TLD"
+    | summarize arg_max(TimeGenerated, *) by RequestAccountName, FirstSeen
+    | extend
+        EmailDetails = strcat(
+        "https://security.microsoft.com/emailentity?f=summary&startTime=",
+        tostring(TimeGenerated),
+        "&endTime=",
+        tostring(TimeGenerated),
+        "&id=",
+        NetworkMessageId,
+        "&recipient=",
+        RecipientEmailAddress,
+        "&tid=",
+        SampleTenantId
+)
+| summarize FirstClick = min(TimeGenerated) by SenderFromAddress, FileName, RequestAccountName, EmailDetails
+| order by EmailDetails desc;
+Device_FileEvents
