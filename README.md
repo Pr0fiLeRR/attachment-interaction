@@ -22,4 +22,5 @@
 
 <p>This KQL script detects if end user interacted with a PDF attachment in a potential phishing/BEC incident.</p>
 
-- [Link to this contribution](https://detections.ai/rules/019bdfb2-48f4-7028-8abc-90875258a4e8)
+- [Link to the KQL contribution](https://detections.ai/rules/019bdfb2-48f4-7028-8abc-90875258a4e8)
+- [Link to the Sigma contribution](https://detections.ai/rules/019c845f-3241-71cc-a42b-13eb646c1d60)
