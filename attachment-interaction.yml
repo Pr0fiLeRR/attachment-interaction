@@ -1,0 +1,44 @@
+---
+title: Attachment Interaction Detection
+author: Igor Oliveira (Pr0fiLeRR)
+id: ccfc04b4-f6ad-459f-b332-bef83c7bc725
+references:
+  - https://sigmahq.io/sigma-specification/specification/sigma-rules-specification.html
+  - https://detections.ai/rules/019bdfb2-48f4-7028-8abc-90875258a4e8
+description: |
+  This KQL script detects if end user 
+  interacted with an attachment in a
+  potential phishing/BEC incident.
+status: stable
+tags:
+  - attack.t1566.001
+date: 2026-02-21
+logsource:
+  product: windows
+  category: email
+detection:
+  selection_main:
+    filename|endswith: # This can be any extension or a suspicious extension that shouldn't be sent by email on traditional business communication.
+      - '.pdf'
+    actiontype: 'FileCreated'
+    initiatingprocessfilename: 'outlook.exe'
+  selection_domain:
+    senderfromdomain: 'senderdomain.tld'
+    recipientdomain: 'recipientdomain.tld'
+  filter:
+    senderfromdomain: 'recipientdomain.tld'
+  condition: selection_main and selection_domain and not filter
+fields: 
+  - FileName
+  - EmailAttachmentInfo
+  - ActionType
+  - InitiatingProcessFileName
+  - DeviceName
+  - RequestAccountName
+  - SenderFromAddress
+  - RecipientEmailAddress
+  - EmailDetails
+falsepositives:
+  - Upon investigation, it was discovered that email was intentionally sent by this legitimate sender, which turned out not to be a malicious message
+level: medium # based on impact, likelyhood, detection confidence, and environment sensitivity
+...
